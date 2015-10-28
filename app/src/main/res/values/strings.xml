@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">AddUser</string>
+    <string name="hello_world">Agregar usuario</string>
+    <string name="action_settings">Settings</string>
+</resources>
