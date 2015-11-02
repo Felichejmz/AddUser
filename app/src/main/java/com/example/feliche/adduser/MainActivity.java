@@ -1,8 +1,10 @@
 package com.example.feliche.adduser;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.StrictMode;
@@ -67,6 +69,29 @@ public class MainActivity extends Activity {
         numberCell = etNoCelular.getText().toString();
         numberIMEI = etNoIMEI.getText().toString();
         emailUser = etEmail.getText().toString();
+
+        // los últimos 10 digitos
+        // quitar el + y otros números adicionales si el usuario edita el campo
+        if(numberCell.length() > Def.SIZE_CELL_NUMBER){
+            numberCell = numberCell.substring(
+                    numberCell.length() - Def.SIZE_CELL_NUMBER);
+        }
+
+        // valida que solo sean números
+        if((!numberCell.matches("[0-9]+")) || (numberCell.length() != 10)){
+            AlertDialog.Builder builder1 = new AlertDialog.Builder(this);
+            builder1.setMessage("Verifique que el número sea de 10 dígitos");
+            builder1.setCancelable(true);
+            builder1.setPositiveButton("Aceptar",
+                    new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                            dialog.cancel();
+                        }
+                    });
+            AlertDialog alert11 = builder1.create();
+            alert11.show();
+            return;
+        }
 
         String adminNewUser = Def.ADMIN_NEW_USER + "@" + Def.SERVER_NAME;
         String datos =
@@ -151,6 +176,13 @@ public class MainActivity extends Activity {
     public void getCellInfo(){
         TelephonyManager tf = (TelephonyManager)getBaseContext().getSystemService(Context.TELEPHONY_SERVICE);
         numberCell = tf.getLine1Number();
+
+        // los últimos 10 digitos
+        // quitar el + y otros números adicionales
+        if(numberCell.length() > Def.SIZE_CELL_NUMBER){
+            numberCell = numberCell.substring(
+                    numberCell.length() - Def.SIZE_CELL_NUMBER);
+        }
         numberIMEI = tf.getDeviceId();
     }
 

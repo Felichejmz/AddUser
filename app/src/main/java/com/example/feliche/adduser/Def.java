@@ -15,4 +15,7 @@ public class Def {
     // cuenta de administración de la cuentas
     // de los USUARIOS NUEVOS
     public static String ADMIN_NEW_USER = "admin_new_user";
+
+    // longitud de un numero celular
+    public static int SIZE_CELL_NUMBER = 10;
 }
