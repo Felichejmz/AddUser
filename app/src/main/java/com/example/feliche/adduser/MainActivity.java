@@ -21,29 +21,28 @@ import servicio.XmppService;
 
 
 public class MainActivity extends Activity {
+    EditText etNombre;
     EditText etNoCelular;
-    EditText etIMEI;
-    EditText etDeviceID;
-    EditText etSerialSIM;
+    EditText etNoIMEI;
+    EditText etEmail;
 
     EditText etCuentaXMPP;
     EditText etPassXMPP;
 
     Button btnEnviar;
 
-    String deviceID,serialSIM,numberCell,numberIMEI;
+    String nameUser, numberCell;
+    public static String numberIMEI;
+    String emailUser;
+
     String cuentaXMPP, passXMPP;
 
     private BroadcastReceiver mReceiver;
 
-    String ADMIN_ADD_USER = "feliche";
-    String CUENTA = "cuenta";
-    String PASSWORD = "password";
-
     @Override
     protected void onResume(){
         super.onResume();
-        mReceiver = new BroadcastReceiver() {
+        mReceiver =     new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
                 String action = intent.getAction();
@@ -53,12 +52,6 @@ public class MainActivity extends Activity {
                         String message = intent.getStringExtra(XmppService.BUNDLE_MESSAGE_BODY);
                         etCuentaXMPP.setText(from.split("@")[0]);
                         etPassXMPP.setText(message);
-                        break;
-                    case XmppService.NEW_ROSTER:
-                        ArrayList<String> roster = intent.getStringArrayListExtra(XmppService.BUNDLE_ROSTER);
-                        if(roster == null){
-                            return;
-                        }
                         break;
                 }
             }
@@ -70,13 +63,21 @@ public class MainActivity extends Activity {
     }
 
     public void onClickaddUSer(View v){
-        String datos = "noCell " + numberCell + "\n";
-                datos += "serialSIM " + serialSIM +"\n";
-                datos += "deviceID " + deviceID + "\n";
+        nameUser = etNombre.getText().toString();
+        numberCell = etNoCelular.getText().toString();
+        numberIMEI = etNoIMEI.getText().toString();
+        emailUser = etEmail.getText().toString();
+
+        String adminNewUser = Def.ADMIN_NEW_USER + "@" + Def.SERVER_NAME;
+        String datos =
+                "Nombre " + nameUser + "\n" +
+                "noCell " + numberCell + "\n" +
+                "noIMEI " + numberIMEI +"\n" +
+                "email " + emailUser + "\n";
         Intent intent = new Intent(XmppService.SEND_MESSAGE);
         intent.setPackage(this.getPackageName());
         intent.putExtra(XmppService.BUNDLE_MESSAGE_BODY, datos);
-        intent.putExtra(XmppService.BUNDLE_TO, "cachorro@feliche.xyz");
+        intent.putExtra(XmppService.BUNDLE_TO, adminNewUser);
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN) {
             intent.addFlags(Intent.FLAG_RECEIVER_FOREGROUND);
         }
@@ -88,10 +89,10 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        etNoCelular = (EditText)findViewById(R.id.etNumeroTelefono);
-        etIMEI = (EditText)findViewById(R.id.etIMEI);
-        etDeviceID = (EditText)findViewById(R.id.etDeviceID);
-        etSerialSIM = (EditText)findViewById(R.id.etSerialSIM);
+        etNombre = (EditText)findViewById(R.id.etNombre);
+        etNoCelular = (EditText)findViewById(R.id.etNoCelular);
+        etNoIMEI = (EditText)findViewById(R.id.etNoIMEI);
+        etEmail = (EditText)findViewById(R.id.etEmail);
 
         etCuentaXMPP = (EditText)findViewById(R.id.etCuenta);
         etPassXMPP = (EditText)findViewById(R.id.etPassword);
@@ -101,9 +102,7 @@ public class MainActivity extends Activity {
         getCellInfo();
 
         etNoCelular.setText(numberCell);
-        etIMEI.setText(numberIMEI);
-        etDeviceID.setText(deviceID);
-        etSerialSIM.setText(serialSIM);
+        etNoIMEI.setText(numberIMEI);
 
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy);
@@ -115,7 +114,6 @@ public class MainActivity extends Activity {
     }
 
     public void connectXmpp(){
-        btnEnviar.setText("123");
         if(XmppService.getState().equals(XmppConnection.ConnectionState.DISCONNECTED)){
             btnEnviar.setText("Conectar");
             Intent intent = new Intent(this, XmppService.class);
@@ -127,8 +125,6 @@ public class MainActivity extends Activity {
             this.stopService(intent);
         }
     }
-
-
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -153,12 +149,9 @@ public class MainActivity extends Activity {
     }
 
     public void getCellInfo(){
-
         TelephonyManager tf = (TelephonyManager)getBaseContext().getSystemService(Context.TELEPHONY_SERVICE);
         numberCell = tf.getLine1Number();
         numberIMEI = tf.getDeviceId();
-        deviceID = numberIMEI;
-        serialSIM = tf.getSimSerialNumber();
     }
 
     @Override
@@ -167,5 +160,4 @@ public class MainActivity extends Activity {
         Intent intent = new Intent(this, XmppService.class);
         this.stopService(intent);
     }
-
 }

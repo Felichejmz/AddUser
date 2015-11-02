@@ -25,17 +25,18 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Numero de teléfono"
-                android:id="@+id/tvNumeroTelefono"
+                android:text="Nombre:"
+                android:id="@+id/tvNombre"
                 android:layout_below="@+id/tvNumeroCelular"
-                android:layout_alignEnd="@+id/etNumeroTelefono" />
+                android:layout_alignEnd="@+id/etNombre" />
 
             <EditText
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:id="@+id/etNumeroTelefono"
+                android:id="@+id/etNombre"
                 android:layout_below="@+id/etNumeroCelular"
-                android:layout_centerHorizontal="true" />
+                android:layout_centerHorizontal="true"
+                android:text="Felix Jimenez" />
 
         </TableRow>
 
@@ -46,13 +47,29 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Numero IMEI"
+                android:text="No. Celular"
+                android:id="@+id/tvNumeroCelular" />
+
+            <EditText
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/etNoCelular" />
+        </TableRow>
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="No. IMEI"
                 android:id="@+id/tvNumeroIMEI" />
 
             <EditText
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:id="@+id/etIMEI" />
+                android:id="@+id/etNoIMEI" />
         </TableRow>
 
         <TableRow
@@ -62,29 +79,14 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="deviceID"
-                android:id="@+id/textView2" />
+                android:text="e-mail"
+                android:id="@+id/tvEmail" />
 
             <EditText
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:id="@+id/etDeviceID" />
-        </TableRow>
-
-        <TableRow
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="serialSIM"
-                android:id="@+id/textView3" />
-
-            <EditText
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:id="@+id/etSerialSIM" />
+                android:id="@+id/etEmail"
+                android:text="feliche.jmz@hotmail.com" />
         </TableRow>
     </TableLayout>
 

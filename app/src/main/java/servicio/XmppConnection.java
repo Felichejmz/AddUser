@@ -5,8 +5,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Build;
-import android.preference.PreferenceManager;
 
+import com.example.feliche.adduser.Def;
+import com.example.feliche.adduser.MainActivity;
 
 import org.jivesoftware.smack.Chat;
 import org.jivesoftware.smack.ChatManager;
@@ -39,15 +40,10 @@ import java.util.Collection;
 public class XmppConnection implements ConnectionListener, ChatManagerListener, RosterListener, ChatMessageListener,PingFailedListener{
 
     private final Context mApplicationContext;
-    private final String mPassword;
-    private String mUserName;
-    private String mServiceName;
-    private String mUser;
 
     private XMPPTCPConnection mConnection;
     private ArrayList<String> mRoster;
     private BroadcastReceiver mReceiver;
-
 
     //ConnectionListener
     @Override
@@ -134,10 +130,6 @@ public class XmppConnection implements ConnectionListener, ChatManagerListener, 
 
     public XmppConnection(Context mContext){
         mApplicationContext = mContext.getApplicationContext();
-        mPassword = "rex";
-        mUser = "rex";
-        mUserName = "rex";
-        mServiceName = "feliche.xyz";
     }
 
     // Desconectar
@@ -168,20 +160,19 @@ public class XmppConnection implements ConnectionListener, ChatManagerListener, 
         SASLAuthentication.blacklistSASLMechanism("DIGEST-MD5");
 
         // configuración de la conexión XMPP
-        builder.setServiceName(mServiceName);
-        builder.setResource("addClient");
-        builder.setUsernameAndPassword(mUserName, mPassword);
+        builder.setHost(Def.SERVER_NAME);
+        builder.setServiceName(Def.SERVER_NAME);
+        builder.setResource(MainActivity.numberIMEI);
+        builder.setUsernameAndPassword(Def.NEW_USER, Def.NEW_USER_PASS);
+        builder.setSendPresence(true);
         builder.setRosterLoadedAtLogin(true);
 
         // crea la conexión
         mConnection = new XMPPTCPConnection(builder.build());
-
         // Configura el listener
         mConnection.addConnectionListener(this);
-
         // se conecta al servidor
         mConnection.connect();
-
         // envía la autenticación
         mConnection.login();
 
