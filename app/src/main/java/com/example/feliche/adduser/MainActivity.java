@@ -9,12 +9,15 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.StrictMode;
 import android.os.Bundle;
+import android.telephony.SmsMessage;
 import android.telephony.TelephonyManager;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 
 import java.util.ArrayList;
 
@@ -23,6 +26,9 @@ import servicio.XmppService;
 
 
 public class MainActivity extends Activity {
+
+    private static MainActivity inst;
+
     EditText etNombre;
     EditText etNoCelular;
     EditText etNoIMEI;
@@ -32,6 +38,7 @@ public class MainActivity extends Activity {
     EditText etPassXMPP;
 
     Button btnEnviar;
+    TextView tvLog;
 
     String nameUser, numberCell;
     public static String numberIMEI;
@@ -39,15 +46,20 @@ public class MainActivity extends Activity {
 
     String cuentaXMPP, passXMPP;
 
+
+    String log = "log";
+
     private BroadcastReceiver mReceiver;
 
+    private static final String LOGTAG = "MainActivity:BR";
     @Override
     protected void onResume(){
         super.onResume();
-        mReceiver =     new BroadcastReceiver() {
+        mReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
                 String action = intent.getAction();
+                Log.d(LOGTAG, "action=" + action);
                 switch (action){
                     case XmppService.NEW_MESSAGE:
                         String from = intent.getStringExtra(XmppService.BUNDLE_FROM_JID);
@@ -55,12 +67,32 @@ public class MainActivity extends Activity {
                         etCuentaXMPP.setText(from.split("@")[0]);
                         etPassXMPP.setText(message);
                         break;
+                    case XmppService.UPDATE_CONNECTION:
+                        String status = intent.getStringExtra(XmppService.CONNECTION);
+                        btnEnviar.setText(status);
+                        tvLog.append("\n" + status);
+                        break;
+                    case "android.provider.Telephony.SMS_RECEIVED":
+                        Bundle bundle = intent.getExtras();
+                        if(bundle != null) {
+                            Object[] sms = (Object[]) bundle.get("pdus");
+                            String smsMsg = null;
+                            for (int i = 0; i < sms.length; i++) {
+                                SmsMessage msgSMS = SmsMessage.createFromPdu((byte[]) sms[i]);
+                                String strMsgFrom = msgSMS.getOriginatingAddress();
+                                String strMsgBody = msgSMS.getMessageBody();
+                                smsMsg = "De:" + strMsgFrom + "\n" + "Mensaje:" + strMsgBody + "\n";
+                            }
+                            tvLog.append(smsMsg);
+                        }
+                        break;
                 }
             }
         };
 
-        IntentFilter filter = new IntentFilter(XmppService.NEW_ROSTER);
+        IntentFilter filter = new IntentFilter(XmppService.UPDATE_CONNECTION);
         filter.addAction(XmppService.NEW_MESSAGE);
+        filter.addAction("android.provider.Telephony.SMS_RECEIVED");
         this.registerReceiver(mReceiver, filter);
     }
 
@@ -69,6 +101,8 @@ public class MainActivity extends Activity {
         numberCell = etNoCelular.getText().toString();
         numberIMEI = etNoIMEI.getText().toString();
         emailUser = etEmail.getText().toString();
+
+        connectXmpp();
 
         // los últimos 10 digitos
         // quitar el + y otros números adicionales si el usuario edita el campo
@@ -124,6 +158,9 @@ public class MainActivity extends Activity {
 
         btnEnviar = (Button)findViewById(R.id.btnAddUser);
 
+        tvLog = (TextView)this.findViewById(R.id.tvLog);
+        tvLog.setText(log);
+
         getCellInfo();
 
         etNoCelular.setText(numberCell);
@@ -134,18 +171,16 @@ public class MainActivity extends Activity {
 
         if(XmppService.getState().equals(XmppConnection.ConnectionState.DISCONNECTED)){
             btnEnviar.setText("Desconectado");
-            connectXmpp();
         }
     }
 
     public void connectXmpp(){
         if(XmppService.getState().equals(XmppConnection.ConnectionState.DISCONNECTED)){
-            btnEnviar.setText("Conectar");
+            btnEnviar.setText("Conectando");
             Intent intent = new Intent(this, XmppService.class);
             this.startService(intent);
-
-        } else {
-            btnEnviar.setText("Desconectar");
+        }else{
+            btnEnviar.setText("Desconectando");
             Intent intent = new Intent(this, XmppService.class);
             this.stopService(intent);
         }
@@ -159,7 +194,7 @@ public class MainActivity extends Activity {
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
+    public boolean onOptionsItemSelected(MenuItem item){
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
@@ -176,7 +211,6 @@ public class MainActivity extends Activity {
     public void getCellInfo(){
         TelephonyManager tf = (TelephonyManager)getBaseContext().getSystemService(Context.TELEPHONY_SERVICE);
         numberCell = tf.getLine1Number();
-
         // los últimos 10 digitos
         // quitar el + y otros números adicionales
         if(numberCell.length() > Def.SIZE_CELL_NUMBER){
@@ -189,7 +223,12 @@ public class MainActivity extends Activity {
     @Override
     public void onStop() {
         super.onStop();
-        Intent intent = new Intent(this, XmppService.class);
-        this.stopService(intent);
+        this.unregisterReceiver(mReceiver);
+    }
+
+    @Override
+    public void onPause(){
+        super.onPause();
+        this.unregisterReceiver(mReceiver);
     }
 }

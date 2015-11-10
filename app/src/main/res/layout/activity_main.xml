@@ -145,7 +145,7 @@
 
     <TableLayout
         android:layout_width="match_parent"
-        android:layout_height="fill_parent"
+        android:layout_height="wrap_content"
         android:shrinkColumns="0"
         android:stretchColumns="1"
         android:background="#f25353">
@@ -182,5 +182,11 @@
                 android:id="@+id/etPassword" />
         </TableRow>
     </TableLayout>
+
+    <TextView
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:text="New Text"
+        android:id="@+id/tvLog" />
 
 </LinearLayout>

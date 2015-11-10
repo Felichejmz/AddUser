@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Build;
+import android.util.Log;
 
 import com.example.feliche.adduser.Def;
 import com.example.feliche.adduser.MainActivity;
@@ -37,69 +38,78 @@ import java.util.Collection;
 /**
  * Created by feliche on 31/08/15.
  */
-public class XmppConnection implements ConnectionListener, ChatManagerListener, RosterListener, ChatMessageListener,PingFailedListener{
+public class XmppConnection implements ConnectionListener, ChatManagerListener, ChatMessageListener,PingFailedListener{
 
     private final Context mApplicationContext;
 
     private XMPPTCPConnection mConnection;
-    private ArrayList<String> mRoster;
     private BroadcastReceiver mReceiver;
+
+    private static final String LOGTAG = "XmppConnection:";
+
+    // envía el estado de la conexión
+    private void connectionStatus(ConnectionState status){
+        Intent intent = new Intent(XmppService.UPDATE_CONNECTION);
+        intent.setPackage(mApplicationContext.getPackageName());
+        intent.putExtra(XmppService.CONNECTION, status.toString());
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN){
+            intent.addFlags(Intent.FLAG_RECEIVER_FOREGROUND);
+        }
+        mApplicationContext.sendBroadcast(intent);
+    }
+
+    public static enum ConnectionState{
+        AUTHENTICATE,
+        CONNECTED,
+        CLOSED_ERROR,
+        RECONNECTING,
+        RECONNECTED,
+        RECONNECTED_ERROR,
+        DISCONNECTED;
+    }
 
     //ConnectionListener
     @Override
     public void connected(XMPPConnection connection) {
         XmppService.sConnectionState = ConnectionState.CONNECTED;
+        connectionStatus(XmppService.sConnectionState);
     }
 
     @Override
     public void authenticated(XMPPConnection connection) {
-        XmppService.sConnectionState = ConnectionState.CONNECTED;
+        XmppService.sConnectionState = ConnectionState.AUTHENTICATE;
+        connectionStatus(XmppService.sConnectionState);
     }
     @Override
     public void connectionClosed() {
         XmppService.sConnectionState = ConnectionState.DISCONNECTED;
+        connectionStatus(XmppService.sConnectionState);
     }
     @Override
     public void connectionClosedOnError(Exception e) {
-        XmppService.sConnectionState = ConnectionState.DISCONNECTED;
+        XmppService.sConnectionState = ConnectionState.CLOSED_ERROR;
+        connectionStatus(XmppService.sConnectionState);
     }
     @Override
     public void reconnectingIn(int seconds) {
         XmppService.sConnectionState = ConnectionState.RECONNECTING;
+        connectionStatus(XmppService.sConnectionState);
     }
     @Override
     public void reconnectionSuccessful() {
-        XmppService.sConnectionState = ConnectionState.CONNECTED;
+        XmppService.sConnectionState = ConnectionState.RECONNECTED;
+        connectionStatus(XmppService.sConnectionState);
     }
     @Override
     public void reconnectionFailed(Exception e) {
-        XmppService.sConnectionState = ConnectionState.DISCONNECTED;
+        XmppService.sConnectionState = ConnectionState.RECONNECTED_ERROR;
+        connectionStatus(XmppService.sConnectionState);
     }
 
     @Override
     public void chatCreated(Chat chat, boolean createdLocally) {
         chat.addMessageListener(this);
 
-    }
-
-    // Roaster Listener
-    @Override
-    public void entriesAdded(Collection<String> addresses) {
-        rebuildRoster();
-    }
-    @Override
-    public void entriesUpdated(Collection<String> addresses) {
-        rebuildRoster();
-    }
-
-    @Override
-    public void entriesDeleted(Collection<String> addresses) {
-        rebuildRoster();
-    }
-
-    @Override
-    public void presenceChanged(Presence presence) {
-        rebuildRoster();
     }
 
     @Override
@@ -119,13 +129,6 @@ public class XmppConnection implements ConnectionListener, ChatManagerListener, 
     @Override
     public void pingFailed() {
 
-    }
-
-    public static enum ConnectionState{
-        CONNECTED,
-        CONNECTING,
-        RECONNECTING,
-        DISCONNECTED;
     }
 
     public XmppConnection(Context mContext){
@@ -184,7 +187,6 @@ public class XmppConnection implements ConnectionListener, ChatManagerListener, 
         setUpSendMessageReceiver();
 
         ChatManager.getInstanceFor(mConnection).addChatListener(this);
-        mConnection.getRoster().addRosterListener(this);
     }
 
     private void setUpSendMessageReceiver(){
@@ -194,7 +196,6 @@ public class XmppConnection implements ConnectionListener, ChatManagerListener, 
                 String action = intent.getAction();
                 if(action.equals(XmppService.SEND_MESSAGE)){
                     sendMessage(intent.getStringExtra(XmppService.BUNDLE_MESSAGE_BODY),intent.getStringExtra(XmppService.BUNDLE_TO));
-
                 }
             }
         };
@@ -217,26 +218,4 @@ public class XmppConnection implements ConnectionListener, ChatManagerListener, 
             e.printStackTrace();
         }
     }
-
-    private void rebuildRoster(){
-        mRoster = new ArrayList<>();
-        String status;
-        for(RosterEntry entry: mConnection.getRoster().getEntries()){
-            if(mConnection.getRoster().getPresence(entry.getUser()).isAvailable()) {
-                status = "En línea";
-            }
-            else
-            {
-                status = "Fuera de línea";
-            }
-            mRoster.add(entry.getUser()+ ": "+status);
-        }
-        Intent intent = new Intent(XmppService.NEW_ROSTER);
-        intent.setPackage(mApplicationContext.getPackageName());
-        intent.putStringArrayListExtra(XmppService.BUNDLE_ROSTER,mRoster);
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN){
-            intent.addFlags(Intent.FLAG_RECEIVER_FOREGROUND);
-        }
-        mApplicationContext.sendBroadcast(intent);
-    };
 }

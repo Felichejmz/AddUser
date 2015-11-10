@@ -16,13 +16,14 @@ public class XmppService extends Service {
 
     public static final String NEW_MESSAGE = "com.example.feliche.newmessage";
     public static final String SEND_MESSAGE = "com.example.feliche.sendmessage";
-    public static final String NEW_ROSTER = "com.example.feliche.newroster";
+    public static final String UPDATE_CONNECTION = "com.example.feliche.statusconnection";
+
 
     public static final String BUNDLE_FROM_JID = "b_from";
     public static final String BUNDLE_FROM_XMPP = "b_from";
     public static final String BUNDLE_MESSAGE_BODY = "b_body";
-    public static final String BUNDLE_ROSTER = "b_body";
     public static final String BUNDLE_TO = "b_to";
+    public static final String CONNECTION = "connection";
 
 
     private boolean mActive;
