@@ -28,6 +28,7 @@ import servicio.XmppService;
 public class MainActivity extends Activity {
 
     private static MainActivity inst;
+    private static boolean statusBroadcastReceiver;
 
     EditText etNombre;
     EditText etNoCelular;
@@ -72,7 +73,7 @@ public class MainActivity extends Activity {
                         btnEnviar.setText(status);
                         tvLog.append("\n" + status);
                         break;
-                    case "android.provider.Telephony.SMS_RECEIVED":
+                    case XmppService.SMS_CONNECTION:
                         Bundle bundle = intent.getExtras();
                         if(bundle != null) {
                             Object[] sms = (Object[]) bundle.get("pdus");
@@ -92,8 +93,9 @@ public class MainActivity extends Activity {
 
         IntentFilter filter = new IntentFilter(XmppService.UPDATE_CONNECTION);
         filter.addAction(XmppService.NEW_MESSAGE);
-        filter.addAction("android.provider.Telephony.SMS_RECEIVED");
+        filter.addAction(XmppService.SMS_CONNECTION);
         this.registerReceiver(mReceiver, filter);
+        statusBroadcastReceiver = true;
     }
 
     public void onClickaddUSer(View v){
@@ -162,6 +164,7 @@ public class MainActivity extends Activity {
         tvLog.setText(log);
 
         getCellInfo();
+        statusBroadcastReceiver = false;
 
         etNoCelular.setText(numberCell);
         etNoIMEI.setText(numberIMEI);
@@ -223,12 +226,14 @@ public class MainActivity extends Activity {
     @Override
     public void onStop() {
         super.onStop();
-        this.unregisterReceiver(mReceiver);
+        if(statusBroadcastReceiver == true)
+            this.unregisterReceiver(mReceiver);
     }
 
     @Override
     public void onPause(){
         super.onPause();
-        this.unregisterReceiver(mReceiver);
+        //if(statusBroadcastReceiver == true)
+        //    this.unregisterReceiver(mReceiver);
     }
 }

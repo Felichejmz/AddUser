@@ -60,6 +60,11 @@ public class XmppConnection implements ConnectionListener, ChatManagerListener, 
 
     public static enum ConnectionState{
         AUTHENTICATE,
+        ERROR,
+        AUTH_ERROR,
+        IO_ERROR,
+        HOSTNAME_ERROR,
+        SECURITY_ERROR,
         CONNECTED,
         CLOSED_ERROR,
         RECONNECTING,
@@ -152,7 +157,7 @@ public class XmppConnection implements ConnectionListener, ChatManagerListener, 
     }
 
     // Conectar
-    public void connect() throws IOException, XMPPException, SmackException{
+    public void connect() throws IOException, XMPPException, SmackException {
         XMPPTCPConnectionConfiguration.XMPPTCPConnectionConfigurationBuilder builder
                 = XMPPTCPConnectionConfiguration.builder();
 
@@ -188,6 +193,11 @@ public class XmppConnection implements ConnectionListener, ChatManagerListener, 
 
         ChatManager.getInstanceFor(mConnection).addChatListener(this);
     }
+
+    public void onConnectionError(ConnectionState error){
+        connectionStatus(error);
+    }
+
 
     private void setUpSendMessageReceiver(){
         mReceiver = new BroadcastReceiver() {

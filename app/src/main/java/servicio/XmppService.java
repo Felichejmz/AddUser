@@ -17,7 +17,7 @@ public class XmppService extends Service {
     public static final String NEW_MESSAGE = "com.example.feliche.newmessage";
     public static final String SEND_MESSAGE = "com.example.feliche.sendmessage";
     public static final String UPDATE_CONNECTION = "com.example.feliche.statusconnection";
-
+    public static final String SMS_CONNECTION = "android.provider.Telephony.SMS_RECEIVED";
 
     public static final String BUNDLE_FROM_JID = "b_from";
     public static final String BUNDLE_FROM_XMPP = "b_from";
@@ -49,7 +49,6 @@ public class XmppService extends Service {
     private void start() {
         if(!mActive ){
             mActive = true;
-
             if(mThread == null || !mThread.isAlive()){
                 mThread = new Thread(new Runnable() {
                     @Override
@@ -78,6 +77,7 @@ public class XmppService extends Service {
     }
 
     private void initConnection(){
+        String error;
         if(mConnection == null){
             mConnection = new XmppConnection(this);
         }
@@ -85,10 +85,20 @@ public class XmppService extends Service {
             mConnection.connect();
         } catch (IOException e) {
             e.printStackTrace();
+            //mConnection.onConnectionError(XmppConnection.ConnectionState.IO_ERROR);
         } catch (XMPPException e) {
             e.printStackTrace();
+            mConnection.onConnectionError(XmppConnection.ConnectionState.AUTH_ERROR);
         } catch (SmackException e) {
             e.printStackTrace();
+            /*
+            if(e.getMessage().contains("Unable to resolve host"))
+                mConnection.onConnectionError(XmppConnection.ConnectionState.HOSTNAME_ERROR);
+            else if(e.getMessage().contains("SSLHandshakeException"))
+                mConnection.onConnectionError(XmppConnection.ConnectionState.SECURITY_ERROR);
+            else
+                mConnection.onConnectionError(XmppConnection.ConnectionState.ERROR);
+            */
         }
     }
 
