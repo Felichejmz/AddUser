@@ -18,6 +18,7 @@ public class XmppService extends Service {
     public static final String SEND_MESSAGE = "com.example.feliche.sendmessage";
     public static final String UPDATE_CONNECTION = "com.example.feliche.statusconnection";
     public static final String SMS_CONNECTION = "android.provider.Telephony.SMS_RECEIVED";
+    public static final String CHANGE_CONNECTIVITY = "android.net.conn.CONNECTIVITY_CHANGE";
 
     public static final String BUNDLE_FROM_JID = "b_from";
     public static final String BUNDLE_FROM_XMPP = "b_from";

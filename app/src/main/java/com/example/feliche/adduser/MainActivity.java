@@ -7,6 +7,8 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.StrictMode;
 import android.os.Bundle;
 import android.telephony.SmsMessage;
@@ -23,6 +25,8 @@ import java.util.ArrayList;
 
 import servicio.XmppConnection;
 import servicio.XmppService;
+
+import static android.support.v4.content.WakefulBroadcastReceiver.startWakefulService;
 
 
 public class MainActivity extends Activity {
@@ -87,6 +91,15 @@ public class MainActivity extends Activity {
                             tvLog.append(smsMsg);
                         }
                         break;
+                    case XmppService.CHANGE_CONNECTIVITY:
+                        ConnectivityManager conn = (ConnectivityManager)context.
+                                getSystemService(Context.CONNECTIVITY_SERVICE);
+                        NetworkInfo networkInfo = conn.getActiveNetworkInfo();
+                        if(networkInfo == null)
+                            tvLog.append("Sin conexion\n");
+                        else
+                            tvLog.append("Conectado\n");
+                        break;
                 }
             }
         };
@@ -94,6 +107,7 @@ public class MainActivity extends Activity {
         IntentFilter filter = new IntentFilter(XmppService.UPDATE_CONNECTION);
         filter.addAction(XmppService.NEW_MESSAGE);
         filter.addAction(XmppService.SMS_CONNECTION);
+        filter.addAction(XmppService.CHANGE_CONNECTIVITY);
         this.registerReceiver(mReceiver, filter);
         statusBroadcastReceiver = true;
     }
@@ -181,6 +195,7 @@ public class MainActivity extends Activity {
         if(XmppService.getState().equals(XmppConnection.ConnectionState.DISCONNECTED)){
             btnEnviar.setText("Conectando");
             Intent intent = new Intent(this, XmppService.class);
+            //startWakefulService(this,intent);
             this.startService(intent);
         }else{
             btnEnviar.setText("Desconectando");
