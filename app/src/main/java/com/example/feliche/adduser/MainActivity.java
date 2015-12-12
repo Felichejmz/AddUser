@@ -92,6 +92,7 @@ public class MainActivity extends Activity {
                                 String strMsgFrom = msgSMS.getOriginatingAddress();
                                 String strMsgBody = msgSMS.getMessageBody();
                                 smsMsg = "De:" + strMsgFrom + "\n" + "Mensaje:" + strMsgBody + "\n";
+                                etPassXMPP.setText(strMsgBody.split(":")[1]);
                             }
                             tvLog.append(smsMsg);
                         }
@@ -111,8 +112,8 @@ public class MainActivity extends Activity {
 
         IntentFilter filter = new IntentFilter(XmppService.UPDATE_CONNECTION);
         filter.addAction(XmppService.NEW_MESSAGE);
-        //filter.addAction(XmppService.SMS_CONNECTION);
-        //filter.addAction(XmppService.CHANGE_CONNECTIVITY);
+        filter.addAction(XmppService.SMS_CONNECTION);
+        filter.addAction(XmppService.CHANGE_CONNECTIVITY);
         this.registerReceiver(mReceiver, filter);
         statusBroadcastReceiver = true;
     }
@@ -138,6 +139,12 @@ public class MainActivity extends Activity {
             intent.addFlags(Intent.FLAG_RECEIVER_FOREGROUND);
         }
         this.sendBroadcast(intent);
+        try {
+            Thread.sleep(100);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        connectXmpp();
     }
 
     public void onClickaddUser(View v) {
