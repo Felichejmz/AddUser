@@ -21,8 +21,9 @@ android {
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile 'com.android.support:appcompat-v7:22.2.0'
-    compile "org.igniterealtime.smack:smack-android-extensions:4.1.0-alpha6"
-    compile "org.igniterealtime.smack:smack-tcp:4.1.0-alpha6"
 
+    compile 'com.android.support:appcompat-v7:22.2.0'
+    compile 'de.measite.minidns:minidns:[0.1,0.2)'
+    compile "org.igniterealtime.smack:smack-android-extensions:4.1.4"
+    compile "org.igniterealtime.smack:smack-tcp:4.1.4"
 }

@@ -10,20 +10,20 @@ import android.util.Log;
 import com.example.feliche.adduser.Def;
 import com.example.feliche.adduser.MainActivity;
 
-import org.jivesoftware.smack.Chat;
-import org.jivesoftware.smack.ChatManager;
-import org.jivesoftware.smack.ChatManagerListener;
-import org.jivesoftware.smack.ChatMessageListener;
 import org.jivesoftware.smack.ConnectionConfiguration;
 import org.jivesoftware.smack.ConnectionListener;
-import org.jivesoftware.smack.RosterEntry;
-import org.jivesoftware.smack.RosterListener;
+import org.jivesoftware.smack.MessageListener;
 import org.jivesoftware.smack.SASLAuthentication;
 import org.jivesoftware.smack.SmackException;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.XMPPException;
+import org.jivesoftware.smack.chat.Chat;
+import org.jivesoftware.smack.chat.ChatManager;
+import org.jivesoftware.smack.chat.ChatManagerListener;
+import org.jivesoftware.smack.chat.ChatMessageListener;
 import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.packet.Presence;
+import org.jivesoftware.smack.roster.RosterListener;
 import org.jivesoftware.smack.sasl.SASLMechanism;
 import org.jivesoftware.smack.sasl.provided.SASLDigestMD5Mechanism;
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
@@ -38,7 +38,7 @@ import java.util.Collection;
 /**
  * Created by feliche on 31/08/15.
  */
-public class XmppConnection implements ConnectionListener, ChatManagerListener, ChatMessageListener,PingFailedListener{
+public class XmppConnection implements ConnectionListener, ChatManagerListener, PingFailedListener, ChatMessageListener {
 
     private final Context mApplicationContext;
 
@@ -56,6 +56,26 @@ public class XmppConnection implements ConnectionListener, ChatManagerListener, 
             intent.addFlags(Intent.FLAG_RECEIVER_FOREGROUND);
         }
         mApplicationContext.sendBroadcast(intent);
+    }
+
+
+    @Override
+    public void chatCreated(Chat chat, boolean createdLocally) {
+        chat.addMessageListener(this);
+    }
+
+    @Override
+    public void processMessage(Chat chat, Message message) {
+        if (message.getType().equals(Message.Type.chat)
+                || message.getType().equals(Message.Type.normal)) {
+            if (message.getBody() != null) {
+                Intent intent = new Intent(XmppService.NEW_MESSAGE);
+                intent.setPackage(mApplicationContext.getPackageName());
+                intent.putExtra(XmppService.BUNDLE_MESSAGE_BODY, message.getBody());
+                intent.putExtra(XmppService.BUNDLE_FROM_XMPP, message.getFrom());
+                mApplicationContext.sendBroadcast(intent);
+            }
+        }
     }
 
     public static enum ConnectionState{
@@ -81,10 +101,11 @@ public class XmppConnection implements ConnectionListener, ChatManagerListener, 
     }
 
     @Override
-    public void authenticated(XMPPConnection connection) {
+    public void authenticated(XMPPConnection connection, boolean resumed) {
         XmppService.sConnectionState = ConnectionState.AUTHENTICATE;
         connectionStatus(XmppService.sConnectionState);
     }
+
     @Override
     public void connectionClosed() {
         XmppService.sConnectionState = ConnectionState.DISCONNECTED;
@@ -112,26 +133,6 @@ public class XmppConnection implements ConnectionListener, ChatManagerListener, 
     }
 
     @Override
-    public void chatCreated(Chat chat, boolean createdLocally) {
-        chat.addMessageListener(this);
-
-    }
-
-    @Override
-    public void processMessage(Chat chat, Message message) {
-        if(message.getType().equals(Message.Type.chat)
-                || message.getType().equals(Message.Type.normal)){
-            if(message.getBody() != null){
-                Intent intent = new Intent(XmppService.NEW_MESSAGE);
-                intent.setPackage(mApplicationContext.getPackageName());
-                intent.putExtra(XmppService.BUNDLE_MESSAGE_BODY, message.getBody());
-                intent.putExtra(XmppService.BUNDLE_FROM_XMPP, message.getFrom());
-                mApplicationContext.sendBroadcast(intent);
-            }
-        }
-    }
-
-    @Override
     public void pingFailed() {
 
     }
@@ -143,11 +144,7 @@ public class XmppConnection implements ConnectionListener, ChatManagerListener, 
     // Desconectar
     public void disconnect(){
         if(mConnection != null){
-            try {
-                mConnection.disconnect();
-            } catch (SmackException.NotConnectedException e) {
-                e.printStackTrace();
-            }
+            mConnection.disconnect();
         }
         mConnection = null;
         if(mReceiver != null){
@@ -158,10 +155,10 @@ public class XmppConnection implements ConnectionListener, ChatManagerListener, 
 
     // Conectar
     public void connect() throws IOException, XMPPException, SmackException {
-        XMPPTCPConnectionConfiguration.XMPPTCPConnectionConfigurationBuilder builder
+        XMPPTCPConnectionConfiguration.Builder builder
                 = XMPPTCPConnectionConfiguration.builder();
 
-        builder.setSecurityMode(ConnectionConfiguration.SecurityMode.disabled);
+        builder.setSecurityMode(ConnectionConfiguration.SecurityMode.required);
         SASLMechanism mechanism = new SASLDigestMD5Mechanism();
         SASLAuthentication.registerSASLMechanism(mechanism);
         SASLAuthentication.blacklistSASLMechanism("SCRAM-SHA-1");
@@ -171,9 +168,8 @@ public class XmppConnection implements ConnectionListener, ChatManagerListener, 
         builder.setHost(Def.SERVER_NAME);
         builder.setServiceName(Def.SERVER_NAME);
         builder.setResource(MainActivity.numberIMEI);
-        builder.setUsernameAndPassword(Def.NEW_USER, Def.NEW_USER_PASS);
         builder.setSendPresence(true);
-        builder.setRosterLoadedAtLogin(true);
+        builder.setPort(5222);
 
         // crea la conexión
         mConnection = new XMPPTCPConnection(builder.build());
@@ -182,7 +178,7 @@ public class XmppConnection implements ConnectionListener, ChatManagerListener, 
         // se conecta al servidor
         mConnection.connect();
         // envía la autenticación
-        mConnection.login();
+        mConnection.login(Def.NEW_USER, Def.NEW_USER_PASS);
 
         // Envía un Ping cada 6 minutos
         PingManager.setDefaultPingInterval(600);
@@ -216,14 +212,10 @@ public class XmppConnection implements ConnectionListener, ChatManagerListener, 
 
     // Envía un mensaje
     private void sendMessage(String mensaje, String toJabberId){
-        Chat chat = ChatManager.getInstanceFor(mConnection).createChat(toJabberId,this);
-
+        Log.i("XmppConnection", "Enviando mensaje");
+        Chat chat = ChatManager.getInstanceFor(mConnection).createChat(toJabberId);
         try {
-            try {
-                chat.sendMessage(mensaje);
-            } catch (XMPPException e) {
-                e.printStackTrace();
-            }
+            chat.sendMessage(mensaje);
         } catch (SmackException.NotConnectedException e) {
             e.printStackTrace();
         }

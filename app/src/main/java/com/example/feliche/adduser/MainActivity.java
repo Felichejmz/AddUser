@@ -41,13 +41,16 @@ public class MainActivity extends Activity {
 
     EditText etCuentaXMPP;
     EditText etPassXMPP;
+    EditText etBirthday;
 
     Button btnEnviar;
     TextView tvLog;
 
-    String nameUser, numberCell;
+    String nameUser;
+    String numberCell;
     public static String numberIMEI;
     String emailUser;
+    String birthday;
 
     String cuentaXMPP, passXMPP;
 
@@ -74,6 +77,8 @@ public class MainActivity extends Activity {
                         break;
                     case XmppService.UPDATE_CONNECTION:
                         String status = intent.getStringExtra(XmppService.CONNECTION);
+                        if (status.contains("AUTHENTICATE"))
+                            sendMessage();
                         btnEnviar.setText(status);
                         tvLog.append("\n" + status);
                         break;
@@ -106,17 +111,41 @@ public class MainActivity extends Activity {
 
         IntentFilter filter = new IntentFilter(XmppService.UPDATE_CONNECTION);
         filter.addAction(XmppService.NEW_MESSAGE);
-        filter.addAction(XmppService.SMS_CONNECTION);
-        filter.addAction(XmppService.CHANGE_CONNECTIVITY);
+        //filter.addAction(XmppService.SMS_CONNECTION);
+        //filter.addAction(XmppService.CHANGE_CONNECTIVITY);
         this.registerReceiver(mReceiver, filter);
         statusBroadcastReceiver = true;
     }
 
-    public void onClickaddUSer(View v){
+    private void sendMessage() {
+        try {
+            Thread.sleep(100);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        String adminNewUser = Def.ADMIN_NEW_USER + "@" + Def.SERVER_NAME;
+        String datos =
+                "Nombre " + nameUser + "\n" +
+                        "noCell " + numberCell + "\n" +
+                        "noIMEI " + numberIMEI + "\n" +
+                        "email " + emailUser + "\n" +
+                        "birthday " + birthday + "\n";
+        Intent intent = new Intent(XmppService.SEND_MESSAGE);
+        intent.setPackage(this.getPackageName());
+        intent.putExtra(XmppService.BUNDLE_MESSAGE_BODY, datos);
+        intent.putExtra(XmppService.BUNDLE_TO, adminNewUser);
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN) {
+            intent.addFlags(Intent.FLAG_RECEIVER_FOREGROUND);
+        }
+        this.sendBroadcast(intent);
+    }
+
+    public void onClickaddUser(View v) {
         nameUser = etNombre.getText().toString();
         numberCell = etNoCelular.getText().toString();
         numberIMEI = etNoIMEI.getText().toString();
         emailUser = etEmail.getText().toString();
+        birthday = etBirthday.getText().toString();
 
         connectXmpp();
 
@@ -142,22 +171,8 @@ public class MainActivity extends Activity {
             alert11.show();
             return;
         }
-
-        String adminNewUser = Def.ADMIN_NEW_USER + "@" + Def.SERVER_NAME;
-        String datos =
-                "Nombre " + nameUser + "\n" +
-                "noCell " + numberCell + "\n" +
-                "noIMEI " + numberIMEI +"\n" +
-                "email " + emailUser + "\n";
-        Intent intent = new Intent(XmppService.SEND_MESSAGE);
-        intent.setPackage(this.getPackageName());
-        intent.putExtra(XmppService.BUNDLE_MESSAGE_BODY, datos);
-        intent.putExtra(XmppService.BUNDLE_TO, adminNewUser);
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN) {
-            intent.addFlags(Intent.FLAG_RECEIVER_FOREGROUND);
-        }
-        this.sendBroadcast(intent);
     }
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -168,6 +183,7 @@ public class MainActivity extends Activity {
         etNoCelular = (EditText)findViewById(R.id.etNoCelular);
         etNoIMEI = (EditText)findViewById(R.id.etNoIMEI);
         etEmail = (EditText)findViewById(R.id.etEmail);
+        etBirthday = (EditText) findViewById(R.id.etBirthday);
 
         etCuentaXMPP = (EditText)findViewById(R.id.etCuenta);
         etPassXMPP = (EditText)findViewById(R.id.etPassword);

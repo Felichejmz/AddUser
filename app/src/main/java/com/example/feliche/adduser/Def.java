@@ -5,8 +5,7 @@ package com.example.feliche.adduser;
  */
 public class Def {
     // Servidor XMPP
-    public static String SERVER_NAME = "feliche.xyz";
-
+    public static String SERVER_NAME = "adastra.re";
     // cuenta con la accesan todos los USUARIOS NUEVOS
     // al servidor XMPP
     public static String NEW_USER = "new_user";
@@ -14,7 +13,7 @@ public class Def {
 
     // cuenta de administración de la cuentas
     // de los USUARIOS NUEVOS
-    public static String ADMIN_NEW_USER = "admin_new_user";
+    public static String ADMIN_NEW_USER = "feliche";
 
     // longitud de un numero celular
     public static int SIZE_CELL_NUMBER = 10;
