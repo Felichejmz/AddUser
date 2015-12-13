@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Build;
+import android.preference.PreferenceManager;
 import android.util.Log;
 
 import com.example.feliche.adduser.Def;
@@ -44,6 +45,8 @@ public class XmppConnection implements ConnectionListener, ChatManagerListener, 
 
     private XMPPTCPConnection mConnection;
     private BroadcastReceiver mReceiver;
+    private String user;
+    private String password;
 
     private static final String LOGTAG = "XmppConnection:";
 
@@ -139,6 +142,8 @@ public class XmppConnection implements ConnectionListener, ChatManagerListener, 
 
     public XmppConnection(Context mContext){
         mApplicationContext = mContext.getApplicationContext();
+        password = PreferenceManager.getDefaultSharedPreferences(mApplicationContext).getString("xmpp_password", null);
+        user = PreferenceManager.getDefaultSharedPreferences(mApplicationContext).getString("xmpp_user", null);
     }
 
     // Desconectar
@@ -167,7 +172,7 @@ public class XmppConnection implements ConnectionListener, ChatManagerListener, 
         // configuración de la conexión XMPP
         builder.setHost(Def.SERVER_NAME);
         builder.setServiceName(Def.SERVER_NAME);
-        builder.setResource(MainActivity.numberIMEI);
+        builder.setResource(Def.APP_NAME);
         builder.setSendPresence(true);
         builder.setPort(5222);
 
@@ -178,7 +183,7 @@ public class XmppConnection implements ConnectionListener, ChatManagerListener, 
         // se conecta al servidor
         mConnection.connect();
         // envía la autenticación
-        mConnection.login(Def.NEW_USER, Def.NEW_USER_PASS);
+        mConnection.login(user, password);
 
         // Envía un Ping cada 6 minutos
         PingManager.setDefaultPingInterval(600);

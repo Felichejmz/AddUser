@@ -7,10 +7,12 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.StrictMode;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.telephony.SmsMessage;
 import android.telephony.TelephonyManager;
 import android.util.Log;
@@ -22,6 +24,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import java.util.ArrayList;
+import java.util.Random;
 
 import servicio.XmppConnection;
 import servicio.XmppService;
@@ -48,11 +51,11 @@ public class MainActivity extends Activity {
 
     String nameUser;
     String numberCell;
-    public static String numberIMEI;
+    String numberIMEI;
     String emailUser;
     String birthday;
 
-    String cuentaXMPP, passXMPP;
+    String accountXmpp, passwordXmpp;
 
 
     String log = "log";
@@ -92,7 +95,11 @@ public class MainActivity extends Activity {
                                 String strMsgFrom = msgSMS.getOriginatingAddress();
                                 String strMsgBody = msgSMS.getMessageBody();
                                 smsMsg = "De:" + strMsgFrom + "\n" + "Mensaje:" + strMsgBody + "\n";
-                                etPassXMPP.setText(strMsgBody.split(":")[1]);
+                                String aleatorio = strMsgBody.split(":")[1];
+                                etPassXMPP.setText(aleatorio);
+                                passwordXmpp = calculatePassword(aleatorio, numberIMEI);
+                                saveUserPass(numberCell, passwordXmpp);
+                                connectAccount(numberCell, passwordXmpp);
                             }
                             tvLog.append(smsMsg);
                         }
@@ -140,7 +147,7 @@ public class MainActivity extends Activity {
         }
         this.sendBroadcast(intent);
         try {
-            Thread.sleep(100);
+            Thread.sleep(500);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -180,7 +187,6 @@ public class MainActivity extends Activity {
         }
     }
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -200,11 +206,12 @@ public class MainActivity extends Activity {
         tvLog = (TextView)this.findViewById(R.id.tvLog);
         tvLog.setText(log);
 
-        getCellInfo();
-        statusBroadcastReceiver = false;
-
+        numberCell = getCellNumber();
         etNoCelular.setText(numberCell);
+        numberIMEI = getNumberIMEI();
         etNoIMEI.setText(numberIMEI);
+
+        statusBroadcastReceiver = false;
 
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy);
@@ -249,18 +256,6 @@ public class MainActivity extends Activity {
         return super.onOptionsItemSelected(item);
     }
 
-    public void getCellInfo(){
-        TelephonyManager tf = (TelephonyManager)getBaseContext().getSystemService(Context.TELEPHONY_SERVICE);
-        numberCell = tf.getLine1Number();
-        // los últimos 10 digitos
-        // quitar el + y otros números adicionales
-        if(numberCell.length() > Def.SIZE_CELL_NUMBER){
-            numberCell = numberCell.substring(
-                    numberCell.length() - Def.SIZE_CELL_NUMBER);
-        }
-        numberIMEI = tf.getDeviceId();
-    }
-
     @Override
     public void onStop() {
         super.onStop();
@@ -273,5 +268,55 @@ public class MainActivity extends Activity {
         super.onPause();
         //if(statusBroadcastReceiver == true)
         //    this.unregisterReceiver(mReceiver);
+    }
+
+    private void connectAccount(String cuenta, String password) {
+
+    }
+
+    private String calculatePassword(String numberRandom, String numberIMEI) {
+        // cadenas de IMEI y RANDOM a numeros
+        int intIMEI = Integer.parseInt(numberIMEI);
+        int intRandom = Integer.parseInt(numberRandom);
+        // XOR para obtener el password
+        return String.valueOf(intIMEI ^ intRandom);
+    }
+
+    public String getCellNumber() {
+        String numeroCelular;
+        TelephonyManager tf = (TelephonyManager) getBaseContext().getSystemService(Context.TELEPHONY_SERVICE);
+        numeroCelular = tf.getLine1Number();
+        // los últimos 10 digitos
+        // quitar el + y otros números adicionales
+        if (numeroCelular.length() > Def.SIZE_CELL_NUMBER) {
+            numeroCelular = numeroCelular.substring(
+                    numeroCelular.length() - Def.SIZE_CELL_NUMBER);
+        }
+        return numeroCelular;
+    }
+
+    private String getNumberIMEI() {
+        String numeroIMEI;
+        TelephonyManager tf = (TelephonyManager) getBaseContext().getSystemService(Context.TELEPHONY_SERVICE);
+        // lee el ID del dispositivo
+        numeroIMEI = tf.getDeviceId();
+        // En caso de ser cero asigno un numero aleatorio entre 111,111 y 999,999
+        if (Integer.parseInt(numeroIMEI) == 0) {
+            Random random = new Random();
+            int imei = random.nextInt(999999 - 111111) + 111111;
+            numeroIMEI = String.valueOf(imei);
+        }
+        // obtengo solo los ultimos 6 digitos
+        if (numeroIMEI.length() > 6)
+            numeroIMEI = numeroIMEI.substring(numeroIMEI.length() - 6);
+        return numeroIMEI;
+    }
+
+    private void saveUserPass(String accountXmpp, String passwordXmpp) {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        prefs.edit()
+                .putString("xmpp_user", accountXmpp)
+                .putString("xmpp_password", String.valueOf(passwordXmpp))
+                .commit();
     }
 }

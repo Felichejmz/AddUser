@@ -17,4 +17,7 @@ public class Def {
 
     // longitud de un numero celular
     public static int SIZE_CELL_NUMBER = 10;
+
+    // nombre de la aplicación
+    public static String APP_NAME = "HolaTaxi";
 }
