@@ -142,8 +142,12 @@ public class XmppConnection implements ConnectionListener, ChatManagerListener, 
 
     public XmppConnection(Context mContext){
         mApplicationContext = mContext.getApplicationContext();
-        password = PreferenceManager.getDefaultSharedPreferences(mApplicationContext).getString("xmpp_password", null);
-        user = PreferenceManager.getDefaultSharedPreferences(mApplicationContext).getString("xmpp_user", null);
+        // obtiene los valores, si no existen entonces coloca los default
+        // de New user
+        user = PreferenceManager.getDefaultSharedPreferences(mApplicationContext)
+                .getString(Def.XMPP_ACCOUNT, Def.NEW_USER_ACCOUNT);
+        password = PreferenceManager.getDefaultSharedPreferences(mApplicationContext)
+                .getString(Def.XMPP_PASSWORD, Def.NEW_USER_PASS);
     }
 
     // Desconectar

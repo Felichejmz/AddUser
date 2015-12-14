@@ -4,11 +4,16 @@ package com.example.feliche.adduser;
  * Created by feliche on 01/11/15.
  */
 public class Def {
+    // identificador de user y password en
+    // shared preferences
+    public static String XMPP_ACCOUNT = "hola.taxi.user.xmpp.account";
+    public static String XMPP_PASSWORD = "hola.taxi.user.xmpp_password";
+
     // Servidor XMPP
     public static String SERVER_NAME = "adastra.re";
     // cuenta con la accesan todos los USUARIOS NUEVOS
     // al servidor XMPP
-    public static String NEW_USER = "new_user";
+    public static String NEW_USER_ACCOUNT = "new_user";
     public static String NEW_USER_PASS = "new_user";
 
     // cuenta de administración de la cuentas
@@ -20,4 +25,7 @@ public class Def {
 
     // nombre de la aplicación
     public static String APP_NAME = "HolaTaxi";
+
+    public static int TIME_CONNECT_TO_XMPP = 400;
+    public static int TIME_TO_SEND_MESSAGE = 400;
 }
