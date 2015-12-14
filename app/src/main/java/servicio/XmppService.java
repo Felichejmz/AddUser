@@ -92,14 +92,6 @@ public class XmppService extends Service {
             mConnection.onConnectionError(XmppConnection.ConnectionState.AUTH_ERROR);
         } catch (SmackException e) {
             e.printStackTrace();
-            /*
-            if(e.getMessage().contains("Unable to resolve host"))
-                mConnection.onConnectionError(XmppConnection.ConnectionState.HOSTNAME_ERROR);
-            else if(e.getMessage().contains("SSLHandshakeException"))
-                mConnection.onConnectionError(XmppConnection.ConnectionState.SECURITY_ERROR);
-            else
-                mConnection.onConnectionError(XmppConnection.ConnectionState.ERROR);
-            */
         }
     }
 

@@ -40,8 +40,6 @@ public class MainActivity extends Activity {
     String nameUser, numberCell, numberIMEI, emailUser, birthday;
     String accountXmpp, passwordXmpp;
 
-    String log = "log";
-
     private BroadcastReceiver mReceiver;
 
     private static final String LOGTAG = "MainActivity:BR";
@@ -64,10 +62,14 @@ public class MainActivity extends Activity {
                     // Estado de la conexión XMPP
                     case XmppService.UPDATE_CONNECTION:
                         String status = intent.getStringExtra(XmppService.CONNECTION);
-                        if (status.contains("AUTHENTICATE") && accountXmpp.contains(Def.NEW_USER_ACCOUNT))
-                            sendMessage();
-                        btnEnviar.setText(status);
                         tvLog.append("\n" + status);
+                        if (status.contains("AUTHENTICATE")) {
+                            if (accountXmpp.contains(Def.NEW_USER_ACCOUNT))
+                                sendMessage();
+                            else
+                                tvLog.append("\n" + "CONECTADO CON USUARIO REGISTRADO");
+                        }
+                        btnEnviar.setText(status);
                         break;
                     // Mensaje SMS
                     case XmppService.SMS_CONNECTION:
@@ -79,7 +81,7 @@ public class MainActivity extends Activity {
                                 SmsMessage msgSMS = SmsMessage.createFromPdu((byte[]) sms[i]);
                                 String strMsgFrom = msgSMS.getOriginatingAddress();
                                 String strMsgBody = msgSMS.getMessageBody();
-                                smsMsg = "De:" + strMsgFrom + "\n" + "Mensaje:" + strMsgBody + "\n";
+                                smsMsg = "De:" + strMsgFrom + "\n" + "Mensaje:" + strMsgBody;
                                 String aleatorio = strMsgBody.split(":")[1];
                                 etPassXMPP.setText(aleatorio);
                                 passwordXmpp = calculatePassword(aleatorio, numberIMEI);
@@ -99,7 +101,7 @@ public class MainActivity extends Activity {
                         if(networkInfo == null)
                             tvLog.append("Sin conexion\n");
                         else
-                            tvLog.append("Conectado\n");
+                            tvLog.append(" :) Conectado");
                         break;
                 }
             }
@@ -158,7 +160,6 @@ public class MainActivity extends Activity {
 
         if (!accountXmpp.matches(Def.NEW_USER_ACCOUNT)) {
             connectAccount();
-            tvLog.append("\n" + "CONECTADO CON USUARIO REGISTRADO");
             return;
         }
 
@@ -213,7 +214,6 @@ public class MainActivity extends Activity {
         btnEnviar = (Button)findViewById(R.id.btnAddUser);
 
         tvLog = (TextView)this.findViewById(R.id.tvLog);
-        tvLog.setText(log);
 
         // obtiene el numero celular
         numberCell = getCellNumber();
@@ -267,6 +267,10 @@ public class MainActivity extends Activity {
         if (XmppService.getState().equals(XmppConnection.ConnectionState.DISCONNECTED)) {
             Intent intent = new Intent(this, XmppService.class);
             this.startService(intent);
+        } else {
+            Intent intent = new Intent(this, XmppService.class);
+            this.stopService(intent);
+            return;
         }
     }
 
@@ -297,12 +301,16 @@ public class MainActivity extends Activity {
         // lee el ID del dispositivo
         numeroIMEI = tf.getDeviceId();
         // En caso de ser cero asigno un numero aleatorio entre 111,111 y 999,999
+        // o numero fijo para el IMEI, despues lo decido
         if (Integer.parseInt(numeroIMEI) == 0) {
+            numeroIMEI = "641735";
+            /*
             Random random = new Random();
             int imei = random.nextInt(999999 - 111111) + 111111;
             numeroIMEI = String.valueOf(imei);
+            */
         }
-        // obtengo solo los ultimos 6 digitos
+        // obtengo solo los últimos 6 digitos
         if (numeroIMEI.length() > 6)
             numeroIMEI = numeroIMEI.substring(numeroIMEI.length() - 6);
         return numeroIMEI;

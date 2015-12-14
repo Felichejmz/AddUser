@@ -200,10 +200,15 @@
         </TableRow>
     </TableLayout>
 
-    <TextView
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
-        android:text="New Text"
-        android:id="@+id/tvLog" />
+    <ScrollView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/scrollView2">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/tvLog" />
+    </ScrollView>
 
 </LinearLayout>
