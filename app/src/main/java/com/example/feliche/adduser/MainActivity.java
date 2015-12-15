@@ -21,6 +21,8 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import com.google.gson.Gson;
+
 import java.util.Random;
 
 import servicio.XmppConnection;
@@ -32,6 +34,8 @@ public class MainActivity extends Activity {
 
     private static MainActivity inst;
     private static boolean statusBroadcastReceiver;
+
+    User user = new User();
 
     EditText etNombre, etNoCelular, etNoIMEI, etEmail;
     EditText etCuentaXMPP, etPassXMPP, etBirthday;
@@ -125,15 +129,13 @@ public class MainActivity extends Activity {
         }
         // envia el dato al administrador
         String adminNewUser = Def.ADMIN_NEW_USER + "@" + Def.SERVER_NAME;
-        // forma la cadena a enviar
-        String datos = "Nombre " + nameUser + "\n" +
-                "noCell " + numberCell + "\n" +
-                "noIMEI " + numberIMEI + "\n" +
-                "email " + emailUser + "\n" +
-                "birthday " + birthday + "\n";
+        // forma la cadena a enviar en formato json de google
+        Gson gson = new Gson();
+        gson.toJson(user);
+
         Intent intent = new Intent(XmppService.SEND_MESSAGE);
         intent.setPackage(this.getPackageName());
-        intent.putExtra(XmppService.BUNDLE_MESSAGE_BODY, datos);
+        intent.putExtra(XmppService.BUNDLE_MESSAGE_BODY, gson.toJson(user));
         intent.putExtra(XmppService.BUNDLE_TO, adminNewUser);
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN) {
             intent.addFlags(Intent.FLAG_RECEIVER_FOREGROUND);
@@ -151,17 +153,12 @@ public class MainActivity extends Activity {
     }
 
     public void onClickaddUser(View v) {
-        nameUser = etNombre.getText().toString();
-        numberCell = etNoCelular.getText().toString();
-        numberIMEI = etNoIMEI.getText().toString();
-        emailUser = etEmail.getText().toString();
-        birthday = etBirthday.getText().toString();
-
-
         if (!accountXmpp.matches(Def.NEW_USER_ACCOUNT)) {
             connectAccount();
             return;
         }
+
+        numberCell = etNoCelular.getText().toString();
 
         // los últimos 10 digitos
         // quitar el + y otros números adicionales
@@ -185,7 +182,14 @@ public class MainActivity extends Activity {
             alert11.show();
             return;
         }
-        // Si el numero es "validado" se conecta
+        // Si el numero es "validado" lo asigna como la cuenta
+        // y coloco los valores al usuario
+        user.setAccount(numberCell);
+        user.setUserName(etNombre.getText().toString());
+        user.setImei(etNoIMEI.getText().toString());
+        user.setEmail(etEmail.getText().toString());
+        user.setBirthday(etBirthday.getText().toString());
+
         connectXmpp();
     }
 
