@@ -107,6 +107,7 @@ public class MainActivity extends Activity {
                         else
                             tvLog.append(" :) Conectado");
                         break;
+
                     case XmppService.NEW_VCARD:
                         Bundle bundleVcard = intent.getBundleExtra(XmppService.VCARD);
                         if (bundleVcard != null) {
@@ -114,7 +115,6 @@ public class MainActivity extends Activity {
                             String nameAvatar = bundleVcard.getString("emailHome");
                             Bitmap bmp = BitmapFactory.decodeByteArray(
                                     avatar, 0, avatar.length);
-
                             imageView.setImageBitmap(bmp);
                         }
                         break;
@@ -126,6 +126,7 @@ public class MainActivity extends Activity {
         filter.addAction(XmppService.NEW_MESSAGE);
         filter.addAction(XmppService.SMS_CONNECTION);
         filter.addAction(XmppService.CHANGE_CONNECTIVITY);
+
         filter.addAction(XmppService.NEW_VCARD);
         this.registerReceiver(mReceiver, filter);
         statusBroadcastReceiver = true;
@@ -155,8 +156,8 @@ public class MainActivity extends Activity {
         }
         this.sendBroadcast(intent);
 
-
         // solicitar VCard
+
         Intent intentVCard = new Intent(XmppService.GET_VCARD);
         intentVCard.setPackage(this.getPackageName());
         intentVCard.putExtra(XmppService.ACCOUNT, "feliche@htu.isramoon.xyz");

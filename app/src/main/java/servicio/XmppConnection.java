@@ -57,6 +57,7 @@ public class XmppConnection implements ConnectionListener, ChatManagerListener, 
         mApplicationContext.sendBroadcast(intent);
     }
 
+
     private void sendVCard(Bundle bundle) {
         Intent intent = new Intent(XmppService.NEW_VCARD);
         intent.setPackage(mApplicationContext.getPackageName());
@@ -240,6 +241,7 @@ public class XmppConnection implements ConnectionListener, ChatManagerListener, 
             e.printStackTrace();
         }
     }
+
 
     public void getVCard(String user) {
         VCard vCard = new VCard();
