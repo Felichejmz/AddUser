@@ -8,6 +8,8 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.StrictMode;
@@ -19,16 +21,13 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.google.gson.Gson;
 
-import java.util.Random;
-
 import servicio.XmppConnection;
 import servicio.XmppService;
-
-import static android.support.v4.content.WakefulBroadcastReceiver.startWakefulService;
 
 public class MainActivity extends Activity {
 
@@ -43,6 +42,7 @@ public class MainActivity extends Activity {
     TextView tvLog;
     String nameUser, numberCell, numberIMEI, emailUser, birthday;
     String accountXmpp, passwordXmpp;
+    ImageView imageView;
 
     private BroadcastReceiver mReceiver;
 
@@ -107,6 +107,16 @@ public class MainActivity extends Activity {
                         else
                             tvLog.append(" :) Conectado");
                         break;
+                    case XmppService.NEW_VCARD:
+                        Bundle bundleVcard = intent.getBundleExtra(XmppService.VCARD);
+                        if (bundleVcard != null) {
+                            byte[] avatar = bundleVcard.getByteArray("avatar");
+                            String nameAvatar = bundleVcard.getString("emailHome");
+                            Bitmap bmp = BitmapFactory.decodeByteArray(
+                                    avatar, 0, avatar.length);
+                            imageView.setImageBitmap(bmp);
+                        }
+                        break;
                 }
             }
         };
@@ -115,6 +125,7 @@ public class MainActivity extends Activity {
         filter.addAction(XmppService.NEW_MESSAGE);
         filter.addAction(XmppService.SMS_CONNECTION);
         filter.addAction(XmppService.CHANGE_CONNECTIVITY);
+        filter.addAction(XmppService.NEW_VCARD);
         this.registerReceiver(mReceiver, filter);
         statusBroadcastReceiver = true;
     }
@@ -127,6 +138,7 @@ public class MainActivity extends Activity {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+
         // envia el dato al administrador
         String adminNewUser = Def.ADMIN_NEW_USER + "@" + Def.SERVER_NAME;
         // forma la cadena a enviar en formato json de google
@@ -141,6 +153,17 @@ public class MainActivity extends Activity {
             intent.addFlags(Intent.FLAG_RECEIVER_FOREGROUND);
         }
         this.sendBroadcast(intent);
+
+
+        // solicitar VCard
+        Intent intentVCard = new Intent(XmppService.GET_VCARD);
+        intentVCard.setPackage(this.getPackageName());
+        intentVCard.putExtra(XmppService.ACCOUNT, "feliche@htu.isramoon.xyz");
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN) {
+            intent.addFlags(Intent.FLAG_RECEIVER_FOREGROUND);
+        }
+        this.sendBroadcast(intentVCard);
+
 
         // espera a que el mensaje sea enviado antes de cerrar la conexión
         try {
@@ -218,6 +241,10 @@ public class MainActivity extends Activity {
         btnEnviar = (Button)findViewById(R.id.btnAddUser);
 
         tvLog = (TextView)this.findViewById(R.id.tvLog);
+
+        imageView = (ImageView) this.findViewById(R.id.imageView);
+
+        //imageView.setImageDrawable();
 
         // obtiene el numero celular
         numberCell = getCellNumber();

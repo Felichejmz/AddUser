@@ -10,7 +10,7 @@ public class Def {
     public static String XMPP_PASSWORD = "hola.taxi.user.xmpp_password";
 
     // Servidor XMPP
-    public static String SERVER_NAME = "adastra.re";
+    public static String SERVER_NAME = "htu.isramoon.xyz";
     // cuenta con la accesan todos los USUARIOS NUEVOS
     // al servidor XMPP
     public static String NEW_USER_ACCOUNT = "new_user";

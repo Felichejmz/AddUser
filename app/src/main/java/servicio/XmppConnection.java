@@ -5,15 +5,14 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Build;
+import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
 import com.example.feliche.adduser.Def;
-import com.example.feliche.adduser.MainActivity;
 
 import org.jivesoftware.smack.ConnectionConfiguration;
 import org.jivesoftware.smack.ConnectionListener;
-import org.jivesoftware.smack.MessageListener;
 import org.jivesoftware.smack.SASLAuthentication;
 import org.jivesoftware.smack.SmackException;
 import org.jivesoftware.smack.XMPPConnection;
@@ -23,18 +22,15 @@ import org.jivesoftware.smack.chat.ChatManager;
 import org.jivesoftware.smack.chat.ChatManagerListener;
 import org.jivesoftware.smack.chat.ChatMessageListener;
 import org.jivesoftware.smack.packet.Message;
-import org.jivesoftware.smack.packet.Presence;
-import org.jivesoftware.smack.roster.RosterListener;
 import org.jivesoftware.smack.sasl.SASLMechanism;
 import org.jivesoftware.smack.sasl.provided.SASLDigestMD5Mechanism;
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 import org.jivesoftware.smack.tcp.XMPPTCPConnectionConfiguration;
 import org.jivesoftware.smackx.ping.PingFailedListener;
 import org.jivesoftware.smackx.ping.PingManager;
+import org.jivesoftware.smackx.vcardtemp.packet.VCard;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
 
 /**
  * Created by feliche on 31/08/15.
@@ -56,6 +52,16 @@ public class XmppConnection implements ConnectionListener, ChatManagerListener, 
         intent.setPackage(mApplicationContext.getPackageName());
         intent.putExtra(XmppService.CONNECTION, status.toString());
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN){
+            intent.addFlags(Intent.FLAG_RECEIVER_FOREGROUND);
+        }
+        mApplicationContext.sendBroadcast(intent);
+    }
+
+    private void sendVCard(Bundle bundle) {
+        Intent intent = new Intent(XmppService.NEW_VCARD);
+        intent.setPackage(mApplicationContext.getPackageName());
+        intent.putExtra(XmppService.VCARD, bundle);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
             intent.addFlags(Intent.FLAG_RECEIVER_FOREGROUND);
         }
         mApplicationContext.sendBroadcast(intent);
@@ -210,12 +216,17 @@ public class XmppConnection implements ConnectionListener, ChatManagerListener, 
             public void onReceive(Context context, Intent intent) {
                 String action = intent.getAction();
                 if(action.equals(XmppService.SEND_MESSAGE)){
-                    sendMessage(intent.getStringExtra(XmppService.BUNDLE_MESSAGE_BODY),intent.getStringExtra(XmppService.BUNDLE_TO));
+                    sendMessage(intent.getStringExtra(XmppService.BUNDLE_MESSAGE_BODY),
+                            intent.getStringExtra(XmppService.BUNDLE_TO));
+                }
+                if (action.equals(XmppService.GET_VCARD)) {
+                    getVCard(intent.getStringExtra(XmppService.ACCOUNT));
                 }
             }
         };
         IntentFilter filter = new IntentFilter();
         filter.addAction(XmppService.SEND_MESSAGE);
+        filter.addAction(XmppService.GET_VCARD);
         mApplicationContext.registerReceiver(mReceiver, filter);
     }
 
@@ -228,5 +239,24 @@ public class XmppConnection implements ConnectionListener, ChatManagerListener, 
         } catch (SmackException.NotConnectedException e) {
             e.printStackTrace();
         }
+    }
+
+    public void getVCard(String user) {
+        VCard vCard = new VCard();
+        try {
+            vCard.load(mConnection, user);
+        } catch (SmackException.NoResponseException e) {
+            e.printStackTrace();
+        } catch (XMPPException.XMPPErrorException e) {
+            e.printStackTrace();
+        } catch (SmackException.NotConnectedException e) {
+            e.printStackTrace();
+        }
+        Bundle b = new Bundle();
+        b.putByteArray("avatar", vCard.getAvatar());
+        b.putString("emailHome", vCard.getEmailHome());
+        //b.putString("auto",vCard.getField("auto"));
+        //b.putString("auto", vCard.getField("placa"));
+        sendVCard(b);
     }
 }

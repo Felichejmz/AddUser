@@ -19,12 +19,17 @@ public class XmppService extends Service {
     public static final String UPDATE_CONNECTION = "com.example.feliche.statusconnection";
     public static final String SMS_CONNECTION = "android.provider.Telephony.SMS_RECEIVED";
     public static final String CHANGE_CONNECTIVITY = "android.net.conn.CONNECTIVITY_CHANGE";
+    public static final String NEW_VCARD = "com.example.feliche.newvcard";
+    public static final String GET_VCARD = "com.example.feliche.getvcard";
+
 
     public static final String BUNDLE_FROM_JID = "b_from";
     public static final String BUNDLE_FROM_XMPP = "b_from";
     public static final String BUNDLE_MESSAGE_BODY = "b_body";
     public static final String BUNDLE_TO = "b_to";
     public static final String CONNECTION = "connection";
+    public static final String VCARD = "new_vcard";
+    public static final String ACCOUNT = "get_vcard";
 
 
     private boolean mActive;
