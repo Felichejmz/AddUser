@@ -114,6 +114,7 @@ public class MainActivity extends Activity {
                             String nameAvatar = bundleVcard.getString("emailHome");
                             Bitmap bmp = BitmapFactory.decodeByteArray(
                                     avatar, 0, avatar.length);
+
                             imageView.setImageBitmap(bmp);
                         }
                         break;
