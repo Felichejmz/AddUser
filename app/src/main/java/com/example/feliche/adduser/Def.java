@@ -28,4 +28,7 @@ public class Def {
 
     public static int TIME_CONNECT_TO_XMPP = 400;
     public static int TIME_TO_SEND_MESSAGE = 400;
+
+    public static String ROOM_BASIC = "room_basic";
+    public static String ROOM_NORMAL = "room_normal";
 }

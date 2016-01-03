@@ -56,6 +56,13 @@ public class MainActivity extends Activity {
                 String action = intent.getAction();
                 Log.d(LOGTAG, "action=" + action);
                 switch (action){
+                    // mensaje MUC
+                    case XmppService.NEW_MUC_MESSAGE:
+                        String de = intent.getStringExtra(XmppService.BUNDLE_MUC_JID);
+                        String msg = intent.getStringExtra(XmppService.BUNDLE_MUC_BODY);
+                        etCuentaXMPP.setText(de);
+                        etPassXMPP.setText(msg);
+                        break;
                     // mensaje XMPP
                     case XmppService.NEW_MESSAGE:
                         String from = intent.getStringExtra(XmppService.BUNDLE_FROM_JID);
@@ -128,6 +135,7 @@ public class MainActivity extends Activity {
         filter.addAction(XmppService.CHANGE_CONNECTIVITY);
 
         filter.addAction(XmppService.NEW_VCARD);
+        filter.addAction(XmppService.NEW_MUC_MESSAGE);      // agregar el filtro del multiuserchat
         this.registerReceiver(mReceiver, filter);
         statusBroadcastReceiver = true;
     }
@@ -174,7 +182,8 @@ public class MainActivity extends Activity {
             e.printStackTrace();
         }
         // cierra la conexión
-        connectXmpp();
+        // NO cierro la conexión para probar el multiuserchat
+        //connectXmpp();
     }
 
     public void onClickaddUser(View v) {

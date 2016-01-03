@@ -13,6 +13,7 @@ import com.example.feliche.adduser.Def;
 
 import org.jivesoftware.smack.ConnectionConfiguration;
 import org.jivesoftware.smack.ConnectionListener;
+import org.jivesoftware.smack.MessageListener;
 import org.jivesoftware.smack.SASLAuthentication;
 import org.jivesoftware.smack.SmackException;
 import org.jivesoftware.smack.XMPPConnection;
@@ -26,11 +27,14 @@ import org.jivesoftware.smack.sasl.SASLMechanism;
 import org.jivesoftware.smack.sasl.provided.SASLDigestMD5Mechanism;
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 import org.jivesoftware.smack.tcp.XMPPTCPConnectionConfiguration;
+import org.jivesoftware.smackx.muc.MultiUserChat;
+import org.jivesoftware.smackx.muc.MultiUserChatManager;
 import org.jivesoftware.smackx.ping.PingFailedListener;
 import org.jivesoftware.smackx.ping.PingManager;
 import org.jivesoftware.smackx.vcardtemp.packet.VCard;
 
 import java.io.IOException;
+import java.lang.reflect.Type;
 
 /**
  * Created by feliche on 31/08/15.
@@ -38,6 +42,9 @@ import java.io.IOException;
 public class XmppConnection implements ConnectionListener, ChatManagerListener, PingFailedListener, ChatMessageListener {
 
     private final Context mApplicationContext;
+
+    private MultiUserChatManager manager;
+    private MultiUserChat muc;
 
     private XMPPTCPConnection mConnection;
     private BroadcastReceiver mReceiver;
@@ -87,6 +94,7 @@ public class XmppConnection implements ConnectionListener, ChatManagerListener, 
             }
         }
     }
+
 
     public static enum ConnectionState{
         AUTHENTICATE,
@@ -204,6 +212,48 @@ public class XmppConnection implements ConnectionListener, ChatManagerListener, 
         setUpSendMessageReceiver();
 
         ChatManager.getInstanceFor(mConnection).addChatListener(this);
+
+        // crear el manager del multiuserchat
+        manager = MultiUserChatManager.getInstanceFor(mConnection);
+        // unirse al room del mutiuser chat
+        joinMuc(Def.ROOM_BASIC);
+        // habilitar la recepción del multiuser chat
+        mucReceiver();
+    }
+
+    /* Receptor del MultiUserChat */
+    private void mucReceiver() {
+        muc.addMessageListener(new MessageListener() {
+            @Override
+            public void processMessage(Message message) {
+                String body = message.getBody();
+                String from = message.getFrom();
+                from = from.substring(from.lastIndexOf("/") + 1, from.length());
+                if (message.getType().equals(Message.Type.groupchat)) {
+                    if (!body.isEmpty()) {
+                        Intent intent = new Intent((XmppService.NEW_MUC_MESSAGE));
+                        intent.setPackage(mApplicationContext.getPackageName());
+                        intent.putExtra(XmppService.BUNDLE_MUC_JID, from);
+                        intent.putExtra(XmppService.BUNDLE_MUC_BODY, body);
+                        mApplicationContext.sendBroadcast(intent);
+                    }
+                }
+            }
+        });
+    }
+
+    // Unirse al multiuser chat
+    private boolean joinMuc(String room) {
+        String roomClient;
+        roomClient = room + "@conference." + Def.SERVER_NAME;
+        muc = manager.getMultiUserChat(roomClient);
+        try {
+            muc.join(user + "@" + Def.SERVER_NAME);
+            return true;
+        } catch (SmackException.NoResponseException | XMPPException.XMPPErrorException | SmackException.NotConnectedException e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
     public void onConnectionError(ConnectionState error){

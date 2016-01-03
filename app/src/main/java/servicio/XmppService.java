@@ -23,6 +23,9 @@ public class XmppService extends Service {
     public static final String NEW_VCARD = "com.example.feliche.newvcard";
     public static final String GET_VCARD = "com.example.feliche.getvcard";
 
+    // id de nuevo mensaje del multiuser chat
+    public static final String NEW_MUC_MESSAGE = "com.example.feliche.newmucmessage";
+
 
     public static final String BUNDLE_FROM_JID = "b_from";
     public static final String BUNDLE_FROM_XMPP = "b_from";
@@ -32,6 +35,11 @@ public class XmppService extends Service {
 
     public static final String VCARD = "new_vcard";
     public static final String ACCOUNT = "get_vcard";
+
+    // id del remitente del mensaje multiuser chat
+    // y el contenido del mensaje
+    public static final String BUNDLE_MUC_JID = "bundle_muc_jid";
+    public static final String BUNDLE_MUC_BODY = "bundle_muc_body";
 
 
     private boolean mActive;
