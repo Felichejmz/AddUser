@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
+import android.util.Log;
 
 
 import org.jivesoftware.smack.SmackException;
@@ -40,6 +41,9 @@ public class XmppService extends Service {
     // y el contenido del mensaje
     public static final String BUNDLE_MUC_JID = "bundle_muc_jid";
     public static final String BUNDLE_MUC_BODY = "bundle_muc_body";
+
+
+    private static final String LOGTAG = "XmppService:";
 
 
     private boolean mActive;
@@ -101,12 +105,16 @@ public class XmppService extends Service {
             mConnection.connect();
         } catch (IOException e) {
             e.printStackTrace();
-            //mConnection.onConnectionError(XmppConnection.ConnectionState.IO_ERROR);
+            Log.e(LOGTAG, "IO_ERROR");
+            mConnection.onConnectionError(XmppConnection.ConnectionState.IO_ERROR);
         } catch (XMPPException e) {
             e.printStackTrace();
+            Log.e(LOGTAG, "AUTH_ERROR");
             mConnection.onConnectionError(XmppConnection.ConnectionState.AUTH_ERROR);
         } catch (SmackException e) {
             e.printStackTrace();
+            Log.e(LOGTAG, "HOSTNAME_ERROR");
+            mConnection.onConnectionError(XmppConnection.ConnectionState.HOSTNAME_ERROR);
         }
     }
 

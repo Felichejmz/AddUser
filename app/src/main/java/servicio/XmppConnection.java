@@ -31,6 +31,7 @@ import org.jivesoftware.smackx.muc.MultiUserChat;
 import org.jivesoftware.smackx.muc.MultiUserChatManager;
 import org.jivesoftware.smackx.ping.PingFailedListener;
 import org.jivesoftware.smackx.ping.PingManager;
+import org.jivesoftware.smackx.vcardtemp.VCardManager;
 import org.jivesoftware.smackx.vcardtemp.packet.VCard;
 
 import java.io.IOException;
@@ -295,8 +296,9 @@ public class XmppConnection implements ConnectionListener, ChatManagerListener, 
 
     public void getVCard(String user) {
         VCard vCard = new VCard();
+        VCardManager vCardManager = VCardManager.getInstanceFor(mConnection);
         try {
-            vCard.load(mConnection, user);
+            vCard = vCardManager.loadVCard(user);
         } catch (SmackException.NoResponseException e) {
             e.printStackTrace();
         } catch (XMPPException.XMPPErrorException e) {
@@ -304,6 +306,7 @@ public class XmppConnection implements ConnectionListener, ChatManagerListener, 
         } catch (SmackException.NotConnectedException e) {
             e.printStackTrace();
         }
+
         Bundle b = new Bundle();
         b.putByteArray("avatar", vCard.getAvatar());
         b.putString("emailHome", vCard.getEmailHome());

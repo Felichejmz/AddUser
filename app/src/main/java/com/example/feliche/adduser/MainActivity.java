@@ -168,7 +168,7 @@ public class MainActivity extends Activity {
 
         Intent intentVCard = new Intent(XmppService.GET_VCARD);
         intentVCard.setPackage(this.getPackageName());
-        intentVCard.putExtra(XmppService.ACCOUNT, "feliche@htu.isramoon.xyz");
+        intentVCard.putExtra(XmppService.ACCOUNT, "taxi2n@htu.isramoon.xyz");
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN) {
             intent.addFlags(Intent.FLAG_RECEIVER_FOREGROUND);
         }
@@ -344,7 +344,7 @@ public class MainActivity extends Activity {
         numeroIMEI = tf.getDeviceId();
         // En caso de ser cero asigno un numero aleatorio entre 111,111 y 999,999
         // o numero fijo para el IMEI, despues lo decido
-        if (Integer.parseInt(numeroIMEI) == 0) {
+        if (Long.parseLong(numeroIMEI) == 0) {
             numeroIMEI = "641735";
             /*
             Random random = new Random();
